@@ -1,7 +1,7 @@
 import os
 from setuptools import setup, find_packages
 
-import environmental
+import qwertyenv
 
 
 def read(fname):
@@ -9,12 +9,12 @@ def read(fname):
 
 
 setup(
-    name='environmental',
-    version=environmental.__version__,
-    description="Exceptional Model Mining (EMM)",
+    name='qwertyenv',
+    version=qwertyenv.__version__,
+    description="Gym environments (Reinforcement Learning)",
     author="Oren Zeev-Ben-Mordehai",
     author_email='zbenmo@gmail.com',
-    url="https://github.com/zbenmo/environmental",
+    url="https://github.com/zbenmo/qwertyenv",
     maintainer='zbenmo@gmail.com',
     packages=find_packages(),
     long_description=read("README.md"),
