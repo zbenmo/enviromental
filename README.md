@@ -1,2 +1,2 @@
-# enviromental
+# environmental
 Gym environments (Reinforcement Learning)
