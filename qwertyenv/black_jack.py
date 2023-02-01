@@ -65,7 +65,7 @@ class BJEnv(gym.Env):
         
         self.observation_space = gym.spaces.Dict(obs_space)
         self.reset()
-    def render(self):
+    def render(self, mode: str):
         self.state.render()
     def reset(self, seed=None, options=None):
         if seed:
@@ -104,5 +104,4 @@ class BJEnv(gym.Env):
                 done = True
         else:
             assert False, f"unkown action {action}"
-        terminated, truncated = done, False
-        return self._state_to_obs(), reward, terminated, truncated, info
+        return self._state_to_obs(), reward, done, info
