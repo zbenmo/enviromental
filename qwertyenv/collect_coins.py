@@ -78,26 +78,26 @@ class CollectCoinsEnv(gym.Env):
     player 0 is the first entry, AKA white
     player 1 is the second entry, AKA black
     """
-    # obs_space = dict(
-    #   board = gym.spaces.Box(low=0, high=1, shape=(8 * 8,), dtype=bool)
-    #   # player_sum = gym.spaces.Discrete(11), # x -> x + 11
-    #   # player_useful_Ace = gym.spaces.Discrete(2), # 0 no, 1 yes
-    #   # dealer_shown_card = gym.spaces.Discrete(10) # 0 - Ace, x -> x + 1 (ex. 1 is 2, 9 is 10)
-    # )    
-    # self.observation_space = gym.spaces.Dict(obs_space)
-    self.observation_space = gym.spaces.Box(low=0, high=1, shape=(8 * 8,), dtype=bool)
+    obs_space = dict(
+      board = gym.spaces.Box(low=0, high=1, shape=(8 * 8,), dtype=bool),
+      player = gym.spaces.MultiDiscrete([8, 8]),
+      other_player = gym.spaces.MultiDiscrete([8, 8]),
+    )    
+    self.observation_space = gym.spaces.Dict(spaces=obs_space)
+    # self.observation_space = gym.spaces.Box(low=0, high=1, shape=(8 * 8,), dtype=bool)
     self.action_space = gym.spaces.MultiDiscrete([8, 8])
 
     self.pieces = pieces
     self.player = player
     self.other_player = 1 - player
     self.game = None
+    self.previous_coins = None
     self.reset()
 
   def reset(self, seed=None, options=None):
     self.game = CollectCoinsGame(self.pieces)
-    info = {}
-    return self._get_observation(), info 
+    self.previous_coins = 0
+    return self._get_observation() 
 
   def step(self, action):
     self.game.make_move(self.player, action)
@@ -114,19 +114,24 @@ class CollectCoinsEnv(gym.Env):
     self.game.make_move(self.other_player, move)
 
   def _get_observation(self):
-    # return dict(
-    #   board=self.game.board.flatten()
-    # )
-    return self.game.board.flatten()
+    return dict(
+      board=self.game.board.flatten(),
+      player=self.game.locations[self.player],
+      other_player=self.game.locations[self.other_player]
+    )
+    # return self.game.board.flatten()
 
   def _calc_reward(self):
+    current_coins = self.game.coins[self.player]
+    previous_coins = self.previous_coins
+    self.previous_coins = current_coins
     done = self.game.is_done()
     if done:
       draw = self.game.coins[self.player] == self.game.coins[self.other_player]
       win = self.game.coins[self.player] > self.game.coins[self.other_player]
-      return 0 if draw else (1 if win else -1)
+      return 0 if draw else (100 if win else -100)
     else:
-      return 0
+      return current_coins - previous_coins
 
   def render(self, *args, **argv):
     self.game.render()
