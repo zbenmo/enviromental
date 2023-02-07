@@ -1,5 +1,6 @@
 from gym.envs.registration import register
 from .ensure_valid_action import EnsureValidAction
+from .up_down_left_right import UpDownLeftRight
 
 __version__ = "0.0.2"
 
@@ -17,5 +18,6 @@ register(
 )
 
 __all__ = [
-    EnsureValidAction
+    EnsureValidAction,
+    UpDownLeftRight
 ]
