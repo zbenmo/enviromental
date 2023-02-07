@@ -8,6 +8,7 @@ class UpDownLeftRight(gym.ActionWrapper):
   A gym environment wrapper to enable U/D/L/R action space when the wrapped environment
   actually expects a destination in cartesian coordinates.
   """
+
   def __init__(self, env: gym.Env,
                get_current_location: Callable[[], Tuple[int, int]]):
 
