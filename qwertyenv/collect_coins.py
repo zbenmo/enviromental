@@ -11,7 +11,7 @@ class CollectCoinsEnv(gym.Env):
 
   This a Chess like, two players, turns, board game.
   The aim of the game is to collect more coins than the opponent.
-  On each turn a the playe's piece makes a move.
+  On each turn a the player's piece makes a move.
   If a coin is present in the destination the count is increased for the player.
   The game ends when there are not more coins on the board to collect. We then compare which player got the most.
   """
