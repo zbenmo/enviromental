@@ -1,23 +1,9 @@
 from typing import TypeVar, Callable
 import gymnasium as gym
-from pettingzoo.utils.wrappers import BaseWrapper
+from .action_wrapper_pz import ActionWrapper
+
 
 Action = TypeVar("Action")
-
-
-class ActionWrapper(BaseWrapper):
-  def __init__(self, env: gym.Env):
-    super().__init__(env)
-
-  def step(self, action):
-    action = self.action(action)
-    self.env.step(action)
-
-  def action(self, action):
-    pass
-
-  def render(self, *args, **kwargs):
-    self.env.render(*args, **kwargs)
 
 
 class EnsureValidAction(ActionWrapper):
