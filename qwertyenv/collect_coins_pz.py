@@ -143,7 +143,9 @@ class CollectCoinsEnv(AECEnv):
       # collect reward if it is the last agent to act
       if self._agent_selector.is_last():
           # rewards for all agents are placed in the .rewards dictionary
-          self.rewards[self.agents[0]], self.rewards[self.agents[1]] = (0, 0) # TODO:
+          self.rewards.update({
+            self.agents[agent_idx]: self._calc_reward(agent_idx) for agent_idx in range(2) 
+          })
 
           self.num_moves += 1
           # The truncations dictionary must be updated for all players.
