@@ -80,24 +80,25 @@ class CollectCoinsEnv(AECEnv):
     self.game = CollectCoinsGame(self.pieces)
 
     self.agents = self.possible_agents[:]
-    self.rewards = {agent: 0 for agent in self.agents}
-    self._cumulative_rewards = {agent: 0 for agent in self.agents}
-    self.terminations = {agent: False for agent in self.agents}
-    self.truncations = {agent: False for agent in self.agents}
-    self.infos = {agent: {} for agent in self.agents}
-    self.state = {agent: None for agent in self.agents}
-    self.observations = {agent: self._get_observation(self.agent_name_mapping[agent]) for agent in self.agents} # ??
-    self.num_moves = 0
+
     """
     Our agent_selector utility allows easy cyclic stepping through the agents list.
     """
     self._agent_selector = agent_selector(self.agents)
     self.agent_selection = self._agent_selector.next()
 
-    self.previous_coins = 0
+    self.rewards = {agent: 0 for agent in self.agents}
+    self._cumulative_rewards = {agent: 0 for agent in self.agents}
+    self.terminations = {agent: False for agent in self.agents}
+    self.truncations = {agent: False for agent in self.agents}
+    self.infos = {agent: {} for agent in self.agents}
+    self.state = {agent: None for agent in self.agents}
+    self.observations = {
+      agent: self._get_observation(self.agent_name_mapping[agent]) for agent in self.agents
+    }
+    self.num_moves = 0
 
-  # def step(self, action):
-  #   return self._get_observation(), self._calc_reward(), self.game.is_done(), info
+    self.previous_coins = [0, 0]
 
   def step(self, action):
       """
@@ -112,10 +113,14 @@ class CollectCoinsEnv(AECEnv):
       And any internal state used by observe() or render()
       """
 
-      if not isinstance(action, (tuple, np.ndarray, list)):
+      # print(f"{self.agent_selection=} {action=}")
+
+      # print(type(action))
+
+      if isinstance(action, np.int64): 
           action = (action // 8, action % 8)  # because for example, Tianshou may return np.int64 ?
 
-      action = tuple(action) # because for example, Tianshou may return list
+      # action = tuple(action) # because for example, Tianshou may return list
       assert isinstance(action, tuple)
       assert len(action) == 2
 
@@ -130,7 +135,8 @@ class CollectCoinsEnv(AECEnv):
           return
 
       agent = self.agent_selection
-      self.game.make_move(self.agent_name_mapping[agent], action)
+      agent_idx = self.agent_name_mapping[agent]
+      self.game.make_move(agent_idx, action)
 
       # the agent which stepped last had its _cumulative_rewards accounted for
       # (because it was returned by last()), so the _cumulative_rewards for this
@@ -138,68 +144,80 @@ class CollectCoinsEnv(AECEnv):
       self._cumulative_rewards[agent] = 0
 
       # stores action of current agent
-      self.state[self.agent_selection] = action
+      self.state[agent] = action
 
       # collect reward if it is the last agent to act
       if self._agent_selector.is_last():
           # rewards for all agents are placed in the .rewards dictionary
           self.rewards.update({
-            self.agents[agent_idx]: self._calc_reward(agent_idx) for agent_idx in range(2) 
+            self.agents[idx]: self._calc_reward(idx) for idx in range(2) 
           })
 
-          self.num_moves += 1
-          # The truncations dictionary must be updated for all players.
-          self.truncations = {
-              agent: False for agent in self.agents # TODO: ?
-          }
+          done = self.game.is_done()
+          if done:
+            self.terminations.update({
+              player: True
+              for player in self.terminations
+            })
+          else:
+            self.num_moves += 1
+            # The truncations dictionary must be updated for all players.
+
+            truncation = self.num_moves > 200 
+
+            self.truncations.update({
+               player: truncation
+              for player in self.truncations
+            })
 
           # observe the current state
           for i in self.agents:
-              self.observations[i] = self._get_observation(self.agent_name_mapping[i]) # self.state[
-              #     self.agents[1 - self.agent_name_mapping[i]]
-              # ]
+            self.observations[i] = self._get_observation(self.agent_name_mapping[i]) # self.state[
+            #     self.agents[1 - self.agent_name_mapping[i]]
+            # ]
       else:
           # necessary so that observe() returns a reasonable observation at all times.
-          self.state[self.agents[1 - self.agent_name_mapping[agent]]] = 0 # TODO:??
+          self.state[self.agents[1 - agent_idx]] = 0 # TODO:??
           # no rewards are allocated until both players give an action
           self._clear_rewards()
 
       # selects the next agent.
       self.agent_selection = self._agent_selector.next()
+
+      # print(f"{self.agent_selection=}")
+
       # Adds .rewards to ._cumulative_rewards
       self._accumulate_rewards()
 
       if self.render_mode == "human":
           self.render()
 
-  # def _play_other(self):
-  #   """
-  #   a random move for now
-  #   """
-
-  #   move = self.provide_alternative_valid_action(None, self.other_player)
-  #   self.game.make_move(self.other_player, move)
-
-  def _get_observation(self, player):
+  def _get_observation(self, player_idx: int):
     obs = dict(
       board=self.game.board,
-      player=self.game.locations[player],
-      other_player=self.game.locations[1 - player]
+      player=self.game.locations[player_idx],
+      other_player=self.game.locations[1 - player_idx]
     )
 
     if self.with_mask:
-       obs['mask'] = [True] * 8 * 8 # !!!
+      all_moves = product(range(8), repeat=2)
+      mask = [self.check_action_valid(move, player_idx) for move in all_moves]
+      # mask = np.array([
+      #    [self.check_action_valid((row, col), player) for col in range(8)]
+      #    for row in range(8)
+      # ])
+      obs['mask'] = mask # TODO: should return a 8 x 8 matrix?
 
     return obs
 
-  def _calc_reward(self, player):
-    current_coins = self.game.coins[player]
-    previous_coins = self.previous_coins
-    self.previous_coins = current_coins
+  def _calc_reward(self, player_idx: int):
+    current_coins = self.game.coins[player_idx]
+    previous_coins = self.previous_coins[player_idx]
+    self.previous_coins[player_idx] = current_coins
     done = self.game.is_done()
     if done:
-      draw = self.game.coins[player] == self.game.coins[1 - player]
-      win = self.game.coins[player] > self.game.coins[1 - player]
+      draw = self.game.coins[player_idx] == self.game.coins[1 - player_idx]
+      win = self.game.coins[player_idx] > self.game.coins[1 - player_idx]
       return 0 if draw else (1 if win else -1)
     else:
       return (current_coins - previous_coins) * 0.01
@@ -214,7 +232,7 @@ class CollectCoinsEnv(AECEnv):
       at any time after reset() is called.
       """
       # observation of one agent is the previous state of the other
-      return np.array(self.observations[agent])
+      return self.observations[agent]
 
   def close(self):
       """
@@ -224,27 +242,28 @@ class CollectCoinsEnv(AECEnv):
       """
       pass
 
-  def check_action_valid(self, action, player=None) -> bool:
+  def check_action_valid(self, action, player_idx: int = None) -> bool:
     """
     This helper function can be used when initializing EnsureValidAction wrapper as an example (see in examples).
     """
 
+    player_idx = player_idx or self.agent_name_mapping[self.agent_selection]
+
+    # print(action)
+
     if not isinstance(action, (tuple, np.ndarray, list)):
         action = (action // 8, action % 8)  # because for example, Tianshou may return np.int64 ?
 
-    action = tuple(action)
+    # action = tuple(action)
     assert isinstance(action, tuple)
     assert len(action) == 2
 
-    agent = self.agent_selection
-    player = self.agent_name_mapping[agent] if player is None else player
-
     return self.game.valid_move(
-      player,
+      player_idx,
       action
     )
 
-  def provide_alternative_valid_action(self, action, player=None):
+  def provide_alternative_valid_action(self, action, player: str=None):
     """
     This helper function can be used when initializing EnsureValidAction wrapper as an example (see in examples).
 
@@ -252,6 +271,10 @@ class CollectCoinsEnv(AECEnv):
     TOOD: maybe consult the provided action(move) and provide an action that is as close as possible.
     """
 
+    player = player or self.agent_selection
+
+    player_idx: int = self.agent_name_mapping[player]
+
     all_moves = product(range(8), repeat=2)
-    all_valid_moves = [move for move in all_moves if self.check_action_valid(move, player)]
+    all_valid_moves = [move for move in all_moves if self.check_action_valid(move, player_idx)]
     return None if len(all_valid_moves) < 1 else random.choice(all_valid_moves)
