@@ -1,0 +1,18 @@
+site_name: QwertyEnv
+theme:
+  name: material
+  palette:
+    primary: blue
+    accent: yellow
+  font:
+    text: Ubuntu
+  # icon:
+  #   logo: material/robot-industrial-outline
+  # favicon: images/favicon-32x32.png
+markdown_extensions:
+  - footnotes
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg  
+nav:
+  - index.md
