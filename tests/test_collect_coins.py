@@ -1,6 +1,6 @@
 import pytest
 
-import gym
+import gymnasium as gym
 from qwertyenv import EnsureValidAction
 from stable_baselines3 import PPO
 from stable_baselines3.ppo.policies import MultiInputPolicy
@@ -27,12 +27,13 @@ def test_evaluate():
   for episode in range(1):
     # print(f'{episode=}')
     # print("-------")
-    obs = env.reset()
+    obs, _ = env.reset()
     # env.render()
     while True:
       action, _state = agent_w.predict(obs)
       # print(f'action predicted: {action}')
-      obs, reward, done, info = env.step(action)
+      obs, reward, terminated, truncated, info = env.step(action)
+      done = terminated or truncated
       # print(f'action taken: {action}')
       # env.render()
       # print(f'{reward=}')

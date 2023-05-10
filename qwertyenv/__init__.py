@@ -1,8 +1,9 @@
 from gymnasium.envs.registration import register
 from .ensure_valid_action import EnsureValidAction
 from .up_down_left_right import UpDownLeftRight
+from .pz_to_gymnasium_wrappers import aec_to_gymnasium, parallel_to_gymnasium
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 register(
@@ -19,5 +20,7 @@ register(
 
 __all__ = [
     EnsureValidAction,
-    UpDownLeftRight
+    UpDownLeftRight,
+    aec_to_gymnasium,
+    parallel_to_gymnasium
 ]

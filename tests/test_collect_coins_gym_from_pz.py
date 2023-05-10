@@ -1,5 +1,5 @@
 from qwertyenv.ensure_valid_action_pz import EnsureValidAction
-from qwertyenv.pz_to_gymnasium_wrapper import PZ2GymnasiumWrapper
+from qwertyenv import aec_to_gymnasium
 
 from tianshou.data import Collector
 from tianshou.env import DummyVectorEnv
@@ -32,7 +32,15 @@ def test_evaluate():
   def act_agent_1(obs):
       return (0, 0)
 
-  env = PZ2GymnasiumWrapper(env, act_others={'agent_1': act_agent_1}) # Note: Gymnasium environment
+  def act_others(agent: str, obs):
+    mapping = {'player_1': act_agent_1}
+    return mapping[agent](obs)
+
+  env = aec_to_gymnasium(
+     env,
+     act_others=act_others,
+     external_agent='player_0'
+  ) # Note: Gymnasium environment
 
   check_env(env) # , num_cycles=10, verbose_progress=False)
 
@@ -60,7 +68,15 @@ def test_with_tianshou():
   def act_agent_1(obs):
       return (0, 0)
 
-  env = PZ2GymnasiumWrapper(env, act_others={'agent_1': act_agent_1}) # Note: Gymnasium environment
+  def act_others(agent: str, obs):
+    mapping = {'player_1': act_agent_1}
+    return mapping[agent](obs)
+
+  env = aec_to_gymnasium(
+     env,
+     act_others=act_others,
+     external_agent='player_0'
+  ) # Note: Gymnasium environment
 
   env = DummyVectorEnv([lambda: env])
 

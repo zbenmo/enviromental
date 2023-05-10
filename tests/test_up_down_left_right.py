@@ -1,6 +1,6 @@
 import pytest
 
-import gym
+import gymnasium as gym
 from qwertyenv import UpDownLeftRight
 
 
