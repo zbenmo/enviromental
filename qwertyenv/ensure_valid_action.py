@@ -1,5 +1,5 @@
 from typing import TypeVar, Callable
-import gym
+import gymnasium as gym
 
 
 Action = TypeVar("Action")

@@ -1,8 +1,8 @@
-from gym.envs.registration import register
+from gymnasium.envs.registration import register
 from .ensure_valid_action import EnsureValidAction
 from .up_down_left_right import UpDownLeftRight
 
-__version__ = "0.0.3"
+__version__ = "0.1.0"
 
 
 register(

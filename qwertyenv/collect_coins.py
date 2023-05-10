@@ -1,5 +1,5 @@
 from itertools import product
-import gym
+import gymnasium as gym
 import random
 
 from qwertyenv.collect_coins_game import CollectCoinsGame
@@ -40,14 +40,14 @@ class CollectCoinsEnv(gym.Env):
   def reset(self, seed=None, options=None):
     self.game = CollectCoinsGame(self.pieces)
     self.previous_coins = 0
-    return self._get_observation() 
+    return self._get_observation(), {} 
 
   def step(self, action):
     self.game.make_move(self.player, action)
     if not self.game.is_done():
       self._play_other()
     info = {}
-    return self._get_observation(), self._calc_reward(), self.game.is_done(), info
+    return self._get_observation(), self._calc_reward(), self.game.is_done(), False, info
 
   def _play_other(self):
     """

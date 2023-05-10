@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 import random
 
 
@@ -64,8 +64,9 @@ class BJEnv(gym.Env):
         )
         
         self.observation_space = gym.spaces.Dict(obs_space)
+        self.render_mode = None
         self.reset()
-    def render(self, mode: str):
+    def render(self):
         self.state.render()
     def reset(self, seed=None, options=None):
         if seed:
@@ -104,4 +105,4 @@ class BJEnv(gym.Env):
                 done = True
         else:
             assert False, f"unkown action {action}"
-        return self._state_to_obs(), reward, done, info
+        return self._state_to_obs(), reward, done, False, info

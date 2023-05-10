@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 from typing import Tuple, Callable
 import numpy as np
 
