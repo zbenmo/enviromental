@@ -15,4 +15,4 @@ Wrapping a PettingZoo environment into a Gymnasium environment by stating which 
 
 Example usages for the Black Jack environment and for the Collect Coins environment can be found on github (the project's home).
 
-Read more in [Reinforcement Learning Observations](https://zbenmo.github.io/RLO).
+Read more in [qwertyenv on github.io](https://zbenmo.github.io/qwertyenv).

@@ -1,4 +1,4 @@
-site_name: QwertyEnv
+site_name: qwertyenv
 theme:
   name: material
   palette:
@@ -10,9 +10,20 @@ theme:
   #   logo: material/robot-industrial-outline
   # favicon: images/favicon-32x32.png
 markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - attr_list
   - footnotes
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg  
 nav:
   - index.md
+  - black_jack.md
+  - collect_coins.md
+  - pz_to_gym.md
